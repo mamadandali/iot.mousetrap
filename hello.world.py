@@ -32,3 +32,4 @@ window.mainloop()
 
 
 
+fvjnxc mzm. lbkcn xv, b ذوط
