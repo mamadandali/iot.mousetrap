@@ -28,8 +28,3 @@ calc_button = tk.Button(window, text="Calculate Age", command=calculate_age)
 calc_button.pack(pady=10)
 
 window.mainloop()
-
-
-
-
-fvjnxc mzm. lbkcn xv, b ذوط

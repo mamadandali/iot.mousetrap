@@ -1,0 +1,30 @@
+You're my setup assistant. I’m building a mousetrap monitoring system.
+
+Here’s what I need from you:
+
+1. Set up a Python environment to run a Flask web server.
+2. Make sure SQLite is installed and ready to use for data storage.
+3. Help me create a database called "mousetrap.db" with a table named "data" with the following columns:
+   - timestamp (TEXT)
+   - mouse_present (INTEGER)
+   - mouse_weight (REAL)
+   - bait1_touched (INTEGER)
+   - bait2_touched (INTEGER)
+   - temperature (REAL)
+   - humidity (REAL)
+
+4. Create a Flask app that:
+   - Listens on port 5000.
+   - Has a `/upload` route that accepts POSTed JSON data with those same fields.
+   - Stores incoming data into the SQLite database.
+   - Runs three mock ML models (just return random values for now) and store their outputs.
+
+5. Also expose these endpoints:
+   - `/model1`, `/model2`, `/model3` — return last result for each model.
+   - `/history` — return the last 3 months of data in JSON.
+
+6. Install any needed packages using `pip3` or `apt`.
+
+7. Set up everything so the server starts automatically on boot.
+
+Give me step-by-step commands and explanations. I want to copy and paste and get it all running fast.
