@@ -1,37 +1,38 @@
-import time
-from pymodbus.server.async_io import StartSerialServer
-from pymodbus.datastore import ModbusSequentialDataStore
+from pymodbus.server.sync import StartSerialServer
 from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
+from pymodbus.device import ModbusDeviceIdentification
+from pymodbus.transaction import ModbusRtuFramer
 import logging
 
-# Configure logging to see state changes
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger(__name__)
+logging.basicConfig()
+log = logging.getLogger()
+log.setLevel(logging.INFO)
 
-# Initialize data store
-store = ModbusSequentialDataStore(
-    coils=[False, False] * 50,  # Coils 00001, 00002, etc.
-    holding_registers=[50, 0] * 50  # 40001=50 (gauge), 40002=0 (setpoint)
+# Data blocks: 2 Holding registers, 2 Coils
+store = ModbusSlaveContext(
+    di=None,
+    co={0: False, 1: False},        # Coils (B1 and B2 buttons)
+    hr={0: 123, 1: 50},             # Holding registers (W40001, W40002)
+    ir=None
 )
-context = ModbusServerContext(slaves={1: store}, single=True)
+context = ModbusServerContext(slaves=store, single=True)
 
-# Function to log changes
-def update_callback(args):
-    address = args[0]
-    value = args[1]
-    if address == 0:  # Coil 00001
-        log.info(f"Coil 00001 changed to {value}")
-    elif address == 1:  # Coil 00002
-        log.info(f"Coil 00002 changed to {value}")
-    elif address == 0:  # Holding Register 40001 (gauge)
-        log.info(f"Gauge (40001) updated to {value}")
-    elif address == 1:  # Holding Register 40002 (setpoint)
-        log.info(f"Setpoint (40002) updated to {value}")
+identity = ModbusDeviceIdentification()
+identity.VendorName = 'RaspberryPi'
+identity.ProductCode = 'RPIMB'
+identity.VendorUrl = 'http://raspberrypi.org/'
+identity.ProductName = 'Modbus RTU Slave'
+identity.ModelName = 'RPI RTU'
+identity.MajorMinorRevision = '1.0'
 
-# Start Modbus RTU server with callback for state changes
+# Start RTU Slave on /dev/ttyUSB0 (adjust if needed)
 StartSerialServer(
-    context,
-    port='/dev/serial0',  # Adjust to your Pi's UART port (e.g., /dev/ttyS0)
+    context=context,
+    identity=identity,
+    port='/dev/ttyUSB0',     # Change this if needed
     baudrate=9600,
-    callback=update_callback
+    stopbits=1,
+    bytesize=8,
+    parity='N',
+    framer=ModbusRtuFramer
 )
