@@ -1,38 +1,42 @@
 from pymodbus.server.sync import StartSerialServer
 from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
-from pymodbus.device import ModbusDeviceIdentification
-from pymodbus.transaction import ModbusRtuFramer
+from pymodbus.datastore import ModbusSequentialDataBlock
 import logging
 
 logging.basicConfig()
 log = logging.getLogger()
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 
-# Data blocks: 2 Holding registers, 2 Coils
+# Initialize coils (discrete outputs)
+# coils indexed from 0, set coil 0 and 1 to False
+initial_coils = [False, False]
+
+# Initialize holding registers with your values
+# hr[0] = 123, hr[1] = 50
+initial_hr = [123, 50]
+
+# Create the data blocks with initial values
 store = ModbusSlaveContext(
-    di=None,
-    co={0: False, 1: False},        # Coils (B1 and B2 buttons)
-    hr={0: 123, 1: 50},             # Holding registers (W40001, W40002)
-    ir=None
+    di=ModbusSequentialDataBlock(0, []),              # No discrete inputs
+    co=ModbusSequentialDataBlock(0, initial_coils),   # Coils B1 and B2 buttons
+    hr=ModbusSequentialDataBlock(0, initial_hr),      # Holding registers W40001=123, W40002=50
+    ir=ModbusSequentialDataBlock(0, [])               # No input registers
 )
+
 context = ModbusServerContext(slaves=store, single=True)
 
-identity = ModbusDeviceIdentification()
-identity.VendorName = 'RaspberryPi'
-identity.ProductCode = 'RPIMB'
-identity.VendorUrl = 'http://raspberrypi.org/'
-identity.ProductName = 'Modbus RTU Slave'
-identity.ModelName = 'RPI RTU'
-identity.MajorMinorRevision = '1.0'
+def run_modbus_rtu_server():
+    StartSerialServer(
+        context,
+        port='/dev/serial0',     # Change if needed (e.g. '/dev/ttyUSB0')
+        baudrate=9600,
+        parity='N',
+        stopbits=1,
+        bytesize=8,
+        timeout=1,
+        framer=None
+    )
 
-# Start RTU Slave on /dev/ttyUSB0 (adjust if needed)
-StartSerialServer(
-    context=context,
-    identity=identity,
-    port='/dev/ttyUSB0',     # Change this if needed
-    baudrate=9600,
-    stopbits=1,
-    bytesize=8,
-    parity='N',
-    framer=ModbusRtuFramer
-)
+if __name__ == "__main__":
+    print("Starting Modbus RTU slave with preset coils and registers...")
+    run_modbus_rtu_server()
