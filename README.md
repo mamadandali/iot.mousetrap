@@ -1,38 +1,40 @@
 from pymodbus.server.sync import StartSerialServer
-from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
-from pymodbus.datastore import ModbusSequentialDataBlock
+from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext, ModbusSequentialDataBlock
+from pymodbus.device import ModbusDeviceIdentification
+from pymodbus.transaction import ModbusRtuFramer
 import logging
 
 logging.basicConfig()
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
-initial_coils = [False]*10
-initial_hr = [0]*10
-initial_hr[0] = 123
-initial_hr[1] = 50
+initial_coils = [False, False]
+initial_hr = [123, 50]
 
 store = ModbusSlaveContext(
-    di=ModbusSequentialDataBlock(0, []),              
-    co=ModbusSequentialDataBlock(0, initial_coils),   
-    hr=ModbusSequentialDataBlock(0, initial_hr),      
-    ir=ModbusSequentialDataBlock(0, [])               
+    di=ModbusSequentialDataBlock(0, []),
+    co=ModbusSequentialDataBlock(0, initial_coils),
+    hr=ModbusSequentialDataBlock(0, initial_hr),
+    ir=ModbusSequentialDataBlock(0, [])
 )
 
 context = ModbusServerContext(slaves=store, single=True)
 
-def run_modbus_rtu_server():
-    StartSerialServer(
-        context,
-        port='/dev/serial0',    
-        baudrate=9600,
-        parity='N',
-        stopbits=1,
-        bytesize=8,
-        timeout=1,
-        framer=None
-    )
+identity = ModbusDeviceIdentification()
+identity.VendorName = 'RaspberryPi'
+identity.ProductCode = 'RPIMB'
+identity.VendorUrl = 'http://raspberrypi.org/'
+identity.ProductName = 'Modbus RTU Slave'
+identity.ModelName = 'RPI RTU'
+identity.MajorMinorRevision = '1.0'
 
-if __name__ == "__main__":
-    print("Starting Modbus RTU slave server...")
-    run_modbus_rtu_server()
+StartSerialServer(
+    context=context,
+    identity=identity,
+    port='/dev/ttyUSB0',   # Change if needed
+    baudrate=9600,
+    stopbits=1,
+    bytesize=8,
+    parity='N',
+    framer=ModbusRtuFramer
+)
