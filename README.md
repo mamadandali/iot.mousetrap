@@ -8,7 +8,7 @@ import random
 import threading
 import time
 
-# Enable logging
+# Enable logging for the whole script
 logging.basicConfig()
 log = logging.getLogger()
 log.setLevel(logging.INFO)
@@ -37,6 +37,18 @@ def update_register():
 
 thread = threading.Thread(target=update_register, daemon=True)
 thread.start()
+
+# تنظیم لاگر مخصوص pymodbus برای نمایش پیام‌های ورودی و خروجی Modbus
+modbus_logger = logging.getLogger("pymodbus")
+modbus_logger.setLevel(logging.INFO)  # یا DEBUG برای جزئیات بیشتر
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+
+modbus_logger.addHandler(console_handler)
 
 # Start server with updated parameters
 StartSerialServer(
