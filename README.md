@@ -8,10 +8,21 @@ import random
 import threading
 import time
 
-# Enable logging for the whole script
+# تنظیم لاگر اصلی و pymodbus
 logging.basicConfig()
 log = logging.getLogger()
 log.setLevel(logging.INFO)
+
+modbus_logger = logging.getLogger("pymodbus")
+modbus_logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+
+modbus_logger.addHandler(console_handler)
 
 # Modbus data store
 store = ModbusSlaveContext(
@@ -27,30 +38,21 @@ identity = ModbusDeviceIdentification()
 identity.VendorName = 'RaspberryPi'
 identity.ProductName = 'Modbus ASCII Slave'
 
-# Update register 40003 (address=2) with random value every second
+# Update register 40003 (address=2) with random value every second, with error handling
 def update_register():
     while True:
         value = random.randint(0, 9999)
-        log.info(f"Writing {value} to register 40003 (address=2)")
-        context[0x00].setValues(3, 2, [value])
+        try:
+            # سعی می‌کنیم مقدار را بنویسیم
+            context[0x00].setValues(3, 2, [value])
+        except Exception as e:
+            log.error(f"Error writing value {value} to register 40003 (address=2): {e}")
         time.sleep(1)
 
 thread = threading.Thread(target=update_register, daemon=True)
 thread.start()
 
-# تنظیم لاگر مخصوص pymodbus برای نمایش پیام‌های ورودی و خروجی Modbus
-modbus_logger = logging.getLogger("pymodbus")
-modbus_logger.setLevel(logging.INFO)  # یا DEBUG برای جزئیات بیشتر
-
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-console_handler.setFormatter(formatter)
-
-modbus_logger.addHandler(console_handler)
-
-# Start server with updated parameters
+# Start server
 StartSerialServer(
     context=context,
     identity=identity,
