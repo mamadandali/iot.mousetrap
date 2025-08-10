@@ -1,1 +1,2 @@
-sudo apt-get install -y libjpeg-dev zlib1g-dev libtiff-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk
+wget https://storage.googleapis.com/download.tensorflow.org/models/tflite/coco_ssd_mobilenet_v2_320_float.tflite
+wget https://raw.githubusercontent.com/amikelive/coco-labels/master/coco-labels-paper.txt
