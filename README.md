@@ -29,9 +29,26 @@ largest_contour = max(contours, key=cv2.contourArea)
 x, y, w, h = cv2.boundingRect(largest_contour)
 apple_length_pixels = max(w, h)  # Length is the longer dimension
 
-print(f"Apple length: {apple_length_pixels} pixels")
+# Determine if width or height is the longest dimension
+if w > h:
+    start_point = (x, y + h // 2)  # Middle of height
+    end_point = (x + w, y + h // 2)  # Middle of height
+else:
+    start_point = (x + w // 2, y)  # Middle of width
+    end_point = (x + w // 2, y + h)  # Middle of width
 
-# Draw bounding box and save output for verification
+# Draw bounding box
 cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+# Draw measurement line
+cv2.line(img, start_point, end_point, (0, 0, 255), 2)  # Red line for measurement
+
+# Display the image
+cv2.imshow("Apple Measurement", img)
+cv2.waitKey(0)  # Wait for any key press
+cv2.destroyAllWindows()
+
+# Save output for verification
 cv2.imwrite("output.png", img)
+print(f"Apple length: {apple_length_pixels} pixels")
 print("Output saved as output.png")
